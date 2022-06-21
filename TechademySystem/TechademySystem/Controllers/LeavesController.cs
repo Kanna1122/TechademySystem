@@ -1,0 +1,98 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using TechademySystem.Data;
+using TechademySystem.Models;
+
+namespace TechademySystem.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class LeavesController : ControllerBase
+    {
+        private readonly AppDbContext _context;
+
+        public LeavesController(AppDbContext context)
+        {
+            _context = context;
+        }
+
+        // GET: api/Leaves
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Leave>>> GetLeave()
+        {
+            return await _context.Leave.ToListAsync();
+        }
+
+        // GET: api/Leaves/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Leave>> GetLeave(int id)
+        {
+            var leave = await _context.Leave.FindAsync(id);
+
+            if (leave == null)
+            {
+                return NotFound();
+            }
+
+            return leave;
+        }
+
+        // PUT: api/Leaves/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for
+        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutLeave(int id, Leave leave)
+        {
+            var exitsleave = await _context.Leave.FirstOrDefaultAsync(x => x.Id == id);
+            if (exitsleave != null)
+            {
+                exitsleave.Task = leave.Task;
+                exitsleave.When = leave.When;
+                exitsleave.Reason = leave.Reason;
+                exitsleave.EmployeeId = leave.EmployeeId;
+
+                await _context.SaveChangesAsync();
+                return Ok(exitsleave);
+            }
+            return NotFound("Employee not Found");
+        }
+
+        // POST: api/Leaves
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for
+        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        [HttpPost]
+        public async Task<ActionResult<Leave>> PostLeave(Leave leave)
+        {
+            _context.Leave.Add(leave);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetLeave", new { id = leave.Id }, leave);
+        }
+
+        // DELETE: api/Leaves/5
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Leave>> DeleteLeave(int id)
+        {
+            var leave = await _context.Leave.FindAsync(id);
+            if (leave == null)
+            {
+                return NotFound();
+            }
+
+            _context.Leave.Remove(leave);
+            await _context.SaveChangesAsync();
+
+            return leave;
+        }
+
+        private bool LeaveExists(int id)
+        {
+            return _context.Leave.Any(e => e.Id == id);
+        }
+    }
+}
